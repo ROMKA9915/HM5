@@ -1,9 +1,5 @@
 package ru.netology
 
-import ru.netology.WallService.postId
-import ru.netology.WallService.posts
-import java.time.Clock
-
 data class Post(
     val id: Int,
     val createdBy: Int?,
@@ -14,7 +10,8 @@ data class Post(
     val canDelete: Boolean,
     val canEdit: Boolean,
     val isPinned: Boolean,
-    val likes: Likes
+    val likes: Likes,
+    var attachment: Array<Attachment>? = emptyArray<Attachment>()
 )
 
 data class Likes(
@@ -28,7 +25,7 @@ object WallService {
 
     fun add(post: Post): Post {
         posts += post.copy(id = postId)
-        postId ++
+        postId++
         return posts.last()
     }
 
@@ -40,39 +37,32 @@ object WallService {
             }
         }
         return false
+
+
     }
 
     fun clear() {
         posts = emptyArray()
         postId = 0
     }
+
 }
 
-object AttachmentService {
-    private var attachments = emptyArray<Attachment>()
-
-    fun add(attachment: Attachment): Attachment {
-        attachments += attachment
-        return attachments.last()
-    }
-}
 
 fun main() {
     val likes = Likes(0, false, true, true)
-    val post = Post(
-        0, 1, System.currentTimeMillis(), "Это пост", false, true, true, true, false, likes = likes
-    )
+
+    val photo: Photo = Photo(1, 1, "Это фотка", 1920, 1080)
+    val attachment: Attachment = PhotoAttachment(photo)
+
+    val post = Post(0, 1, System.currentTimeMillis(), "Это пост", false, true, true, true, false, likes = likes, arrayOf(attachment))
 
     println(WallService.add(post))
 
-    val post2 = Post(
-        1, 3, System.currentTimeMillis(), "Это пост2", false, true, true, true, false, likes = likes
-    )
+    val post2 = Post(1, 3, System.currentTimeMillis(), "Это пост2", false, true, true, true, false, likes = likes, null)
+
     println(WallService.add(post2))
 
     println(WallService.update(post))
 
-    val photo: Attachment = Photo(1, 1, "Фото", 1920, 1080)
-
-    println(AttachmentService.add(photo))
 }
