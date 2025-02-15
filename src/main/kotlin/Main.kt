@@ -1,12 +1,14 @@
 package ru.netology
 
+import ru.netology.WallService.postId
+import ru.netology.WallService.posts
 import java.time.Clock
 
 data class Post(
     val id: Int,
-    val createdBy: Int,
+    val createdBy: Int?,
     val date: Long,
-    val text: String,
+    val text: String?,
     val friendsOnly: Boolean,
     val canPin: Boolean,
     val canDelete: Boolean,
@@ -33,7 +35,7 @@ object WallService {
     fun update(postIn: Post): Boolean {
         for ((Index, post) in posts.withIndex()) {
             if (post.id == postIn.id) {
-                posts[Index] = postIn
+                posts[Index] = postIn.copy()
                 return true
             }
         }
@@ -43,6 +45,15 @@ object WallService {
     fun clear() {
         posts = emptyArray()
         postId = 0
+    }
+}
+
+object AttachmentService {
+    private var attachments = emptyArray<Attachment>()
+
+    fun add(attachment: Attachment): Attachment {
+        attachments += attachment
+        return attachments.last()
     }
 }
 
@@ -60,4 +71,8 @@ fun main() {
     println(WallService.add(post2))
 
     println(WallService.update(post))
+
+    val photo: Attachment = Photo(1, 1, "Фото", 1920, 1080)
+
+    println(AttachmentService.add(photo))
 }
