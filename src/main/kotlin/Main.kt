@@ -14,12 +14,33 @@ data class Post(
     var attachment: Array<Attachment>? = emptyArray<Attachment>()
 )
 
+data class Comment(
+    val id: Int,
+    val fromId: Int,
+    val date: Long,
+    val text: String?
+    )
+
 data class Likes(
     val count: Int, val userLikes: Boolean, val canLikes: Boolean, val canPublish: Boolean
 )
 
+class PostNotFoundException (massage: String): RuntimeException(massage)
+
 object WallService {
     private var posts = emptyArray<Post>()
+
+    private var comments = emptyArray<Comment>()
+
+    fun createComment(postId: Int, comment: Comment): Comment {
+        for ((Index, post) in posts.withIndex()) {
+            if (post.id == postId) {
+                comments += comment.copy()
+                return comment
+            }
+        }
+        return throw PostNotFoundException("Post with id: $postId is not found")
+    }
 
     var postId = 0
 
@@ -65,4 +86,5 @@ fun main() {
 
     println(WallService.update(post))
 
+    println(WallService.createComment(5, comment = Comment(0, 0, System.currentTimeMillis(), "Привет, это комментарий")))
 }
