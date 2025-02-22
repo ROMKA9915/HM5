@@ -1,5 +1,8 @@
 package ru.netology
 
+import ru.netology.WallService.postId
+import ru.netology.WallService.posts
+
 data class Post(
     val id: Int,
     val createdBy: Int?,
@@ -19,7 +22,7 @@ data class Comment(
 )
 
 data class NoteComment(
-    val id: Int, val date: Long, val text: String, var deleted: Boolean = false
+    val id: Int, val date: Long = System.currentTimeMillis(), val text: String, var deleted: Boolean = false
 )
 
 data class Likes(
@@ -160,7 +163,11 @@ object NoteService {
         return false
     }
 
-
+    fun clear() {
+        notes.removeAll(notes)
+        noteComments.removeAll(noteComments)
+        noteId = 0
+    }
 }
 
 
@@ -191,5 +198,6 @@ fun main() {
     NoteService.add("Заголовок", "Текст")
     NoteService.add( "Заголовок2", "Текст2" )
     println(NoteService.get())
-    println(NoteService.getById(0))
+    println(NoteService.clear())
+    println(NoteService.get())
 }
