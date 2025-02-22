@@ -74,7 +74,14 @@ object WallService {
 }
 
 data class Note(
-    val id: Int, val date: Long, val text: String, val title: String
+    val id: Int,
+    val date: Long,
+    val text: String,
+    val title: String,
+    val privacy: Int,
+    val commentPrivacy: Int,
+    val privacyView: String,
+    val privacyComment: String
 )
 
 object NoteService {
@@ -82,35 +89,50 @@ object NoteService {
     private var noteComments = mutableListOf<NoteComment>()
 
     private var noteId = 0
+    private var noteCommentId = 0
 
     fun add(
         title: String,
         text: String,
         privacy: Int = 0,
         commentPrivacy: Int = 0,
-        ptivacyView: String = "all",
+        privacyView: String = "all",
         privacyComment: String = "all"
     ): Note {
-        notes.add(Note(noteId++, System.currentTimeMillis(), text, title))
+        notes.add(
+            Note(
+                noteId++,
+                System.currentTimeMillis(),
+                text,
+                title,
+                privacy,
+                commentPrivacy,
+                privacyView,
+                privacyComment
+            )
+        )
         return notes.last()
     }
 
     fun createComment(noteId: Int, message: String): NoteComment {
-        noteComments.add(NoteComment(noteId, System.currentTimeMillis(), message))
+        noteComments.add(NoteComment(noteCommentId++, System.currentTimeMillis(), message))
         return noteComments.last()
     }
 
     fun delete(noteId: Int): Boolean {
         val size = notes.size
         if (noteId > notes.size) throw PostNotFoundException("Note with id: $noteId is not found")
-        notes.removeAt(noteId)
+        notes.removeIf{ it.id == noteId }
         return notes.size != size
     }
 
     fun deleteComment(commentId: Int): Boolean {
-        if (!noteComments[commentId].deleted) {
-            noteComments[commentId].deleted = true
-            return true
+        val noteComment = noteComments.find { it.id == commentId }
+        if (noteComment != null) {
+            if (!noteComment.deleted) {
+                noteComments.find { it.id == commentId }!!.deleted = true
+                return true
+            }
         }
         return false
     }
@@ -121,22 +143,37 @@ object NoteService {
         text: String,
         privacy: Int = 0,
         commentPrivacy: Int = 0,
-        ptivacyView: String = "all",
+        privacyView: String = "all",
         privacyComment: String = "all"
     ): Boolean {
         val size = notes.size
-        if (noteId> notes.size) throw PostNotFoundException("Note with id: $noteId is not found")
-        notes.removeAt(noteId)
-        notes.add(Note(noteId,System.currentTimeMillis(), text, title))
+        if (noteId > notes.size) throw PostNotFoundException("Note with id: $noteId is not found")
+        notes.removeIf{ it.id == noteId }
+        notes.add(
+            Note(
+                noteId,
+                System.currentTimeMillis(),
+                text,
+                title,
+                privacy,
+                commentPrivacy,
+                privacyView,
+                privacyComment
+            )
+        )
         return size == notes.size
     }
 
     fun editComment(commentId: Int, message: String): Boolean {
         val size = noteComments.size
         if (commentId > noteComments.size) throw PostNotFoundException("Comment with id: $commentId is not found")
-        if (!noteComments[commentId].deleted) {
-            noteComments.removeAt(commentId)
-            noteComments.add(NoteComment(commentId, System.currentTimeMillis(), message))
+        val noteComment = noteComments.find { it.id == commentId }
+        if (noteComment != null) {
+            if (!noteComment.deleted) {
+                noteComments.find { it.id == commentId }!!.deleted = true
+                noteComments.add(NoteComment(commentId, System.currentTimeMillis(), message))
+                return true
+            }
         }
         return size == noteComments.size
     }
@@ -145,19 +182,19 @@ object NoteService {
         return notes
     }
 
-    fun getById(noteId: Int): Note {
-        if (noteId> notes.size) throw PostNotFoundException("Note with id: $noteId is not found")
-        return notes.get(noteId)
+    fun getById(noteId: Int): Note? {
+        if (noteId > notes.size) throw PostNotFoundException("Note with id: $noteId is not found")
+        return notes.find { it.id == noteId }
     }
 
-    fun getComments(commentId: Int): NoteComment {
-        if (commentId> noteComments.size) throw PostNotFoundException("Note with id: $commentId is not found")
-        return noteComments[commentId]
+    fun getComments(commentId: Int): NoteComment? {
+        if (commentId > noteComments.size) throw PostNotFoundException("Note with id: $commentId is not found")
+        return noteComments.find { it.id == commentId }
     }
 
-    fun restoreComment (commentId: Int): Boolean {
-        if (noteComments[commentId].deleted) {
-            noteComments[commentId].deleted = false
+    fun restoreComment(commentId: Int): Boolean {
+        if (noteComments.find { it.id == commentId }?.deleted == true) {
+            noteComments.find { it.id == commentId }!!.deleted = false
             return true
         }
         return false
@@ -167,6 +204,7 @@ object NoteService {
         notes.removeAll(notes)
         noteComments.removeAll(noteComments)
         noteId = 0
+        noteCommentId = 0
     }
 }
 
@@ -196,7 +234,7 @@ fun main() {
 //    )
 
     NoteService.add("Заголовок", "Текст")
-    NoteService.add( "Заголовок2", "Текст2" )
+    NoteService.add("Заголовок2", "Текст2")
     println(NoteService.get())
     println(NoteService.clear())
     println(NoteService.get())
