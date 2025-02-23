@@ -147,4 +147,11 @@ class NoteServiceTest {
         val result = NoteService.restoreComment(0)
         assertTrue(result)
     }
+
+    @Test(expected = PostNotFoundException::class)
+    fun restoreCommentThrowExpTest() {
+        NoteService.createComment(0, "text")
+            NoteService.deleteComment(0)
+        val result = NoteService.restoreComment(0)
+    }
 }
